@@ -1286,15 +1286,24 @@ export class SearchView extends ViewPane {
 	}
 
 	private onQueryTriggered(query: ITextQuery, options: ITextQueryBuilderOptions, excludePatternText: string, includePatternText: string, triggeredOnType: boolean): void {
-		this.addToSearchHistoryDelayer.trigger(() => this.searchWidget.searchInput.onSearchSubmit());
-		this.inputPatternExcludes.onSearchSubmit();
-		this.inputPatternIncludes.onSearchSubmit();
+		if (triggeredOnType) {
+			this.addToSearchHistoryDelayer.trigger(() => this.submitSearchHistory());
+		} else {
+			this.addToSearchHistoryDelayer.cancel();
+			this.submitSearchHistory();
+		}
 
 		this.viewModel.cancelSearch();
 
 		this.currentSearchQ = this.currentSearchQ
 			.then(() => this.doSearch(query, options, excludePatternText, includePatternText, triggeredOnType))
 			.then(() => undefined, () => undefined);
+	}
+
+	private submitSearchHistory(): void {
+		this.searchWidget.searchInput.onSearchSubmit();
+		this.inputPatternExcludes.onSearchSubmit();
+		this.inputPatternIncludes.onSearchSubmit();
 	}
 
 	private doSearch(query: ITextQuery, options: ITextQueryBuilderOptions, excludePatternText: string, includePatternText: string, triggeredOnType: boolean): Thenable<void> {
